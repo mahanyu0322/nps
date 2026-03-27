@@ -15,12 +15,20 @@ import (
 )
 
 func NewJsonDb(runPath string) *JsonDb {
-	return &JsonDb{
+	jsonDb := &JsonDb{
 		RunPath:        runPath,
 		TaskFilePath:   filepath.Join(runPath, "conf", "tasks.json"),
 		HostFilePath:   filepath.Join(runPath, "conf", "hosts.json"),
 		ClientFilePath: filepath.Join(runPath, "conf", "clients.json"),
+		BlacklistPath:  filepath.Join(runPath, "conf", "blacklist.json"),
+		Blacklist:      NewBlacklist(),
 	}
+	// 加载黑名单
+	err := jsonDb.Blacklist.LoadFromFile(jsonDb.BlacklistPath)
+	if err != nil {
+		logs.Error("加载黑名单失败: %v", err)
+	}
+	return jsonDb
 }
 
 type JsonDb struct {
@@ -35,6 +43,8 @@ type JsonDb struct {
 	TaskFilePath     string //task file path
 	HostFilePath     string //host file path
 	ClientFilePath   string //client file path
+	BlacklistPath    string //blacklist file path
+	Blacklist        *Blacklist //blacklist system
 }
 
 func (s *JsonDb) LoadTaskFromJsonFile() {
@@ -122,6 +132,14 @@ func (s *JsonDb) StoreClientsToJsonFile() {
 	clientLock.Lock()
 	storeSyncMapToFile(s.Clients, s.ClientFilePath)
 	clientLock.Unlock()
+}
+
+func (s *JsonDb) StoreBlacklistToJsonFile() error {
+	err := s.Blacklist.SaveToFile(s.BlacklistPath)
+	if err != nil {
+		logs.Error("保存黑名单失败: %v", err)
+	}
+	return err
 }
 
 func (s *JsonDb) GetClientId() int32 {

@@ -156,6 +156,24 @@ func (s *Bridge) GetHealthFromClient(id int, c *conn.Conn) {
 
 //验证失败，返回错误验证flag，并且关闭连接
 func (s *Bridge) verifyError(c *conn.Conn) {
+	// 获取客户端IP地址
+	clientIP := common.GetIpByAddr(c.Conn.RemoteAddr().String())
+	logs.Info("验证失败，客户端IP: %s", clientIP)
+	
+	// 检查IP是否已在黑名单中
+	if file.GetDb().IsBlacklisted(clientIP, "ssh") {
+		logs.Warn("IP %s 已在黑名单中", clientIP)
+	} else {
+		// 记录连接验证失败，将其视为SSH连接尝试
+		// 只记录，不手动添加到黑名单，遵循配置的阈值
+		isBlacklisted := file.GetDb().RecordConnection(clientIP, "ssh")
+		if isBlacklisted {
+			logs.Warn("IP %s 触发黑名单规则，已加入黑名单", clientIP)
+		} else {
+			logs.Info("已记录IP %s 的连接失败，当前未达到黑名单阈值", clientIP)
+		}
+	}
+	
 	c.Write([]byte(common.VERIFY_EER))
 }
 
@@ -226,6 +244,20 @@ func (s *Bridge) DelClient(id int) {
 
 //use different
 func (s *Bridge) typeDeal(typeVal string, c *conn.Conn, id int, vs string) {
+	// 获取客户端IP地址
+	clientIP := common.GetIpByAddr(c.Conn.RemoteAddr().String())
+	logs.Info("客户端连接，IP地址: %s，连接类型: %s", clientIP, typeVal)
+	
+	// 检查IP是否在黑名单中
+	logs.Info("检查IP %s 是否在黑名单中...", clientIP)
+	if file.GetDb().IsBlacklisted(clientIP, "all") {
+		logs.Warn("IP %s 在黑名单中，拒绝连接", clientIP)
+		logs.Info("关闭连接: %s", c.Conn.RemoteAddr().String())
+		c.Close()
+		return
+	}
+	logs.Info("IP %s 不在黑名单中，允许连接", clientIP)
+	
 	isPub := file.GetDb().IsPubClient(id)
 	switch typeVal {
 	case common.WORK_MAIN:
@@ -317,6 +349,42 @@ func (s *Bridge) SendLinkInfo(clientId int, link *conn.Link, t *file.Tunnel) (ta
 		target, err = net.Dial("tcp", link.Host)
 		return
 	}
+	
+	// 获取客户端IP
+	clientIP := common.GetIpByAddr(link.RemoteAddr)
+	logs.Info("收到来自 %s 的连接请求", clientIP)
+	
+	// 根据目标端口判断连接类型
+	connType := "other"
+	hostParts := strings.Split(link.Host, ":")
+	if len(hostParts) >= 2 {
+		targetPort := hostParts[len(hostParts)-1]
+		switch targetPort {
+		case "22":
+			connType = "ssh"
+		case "3389":
+			connType = "rdp"
+		case "80", "443", "8080", "8443":
+			connType = "http"
+		}
+	}
+	logs.Info("连接类型: %s, 目标地址: %s", connType, link.Host)
+	
+	// 检查IP是否在黑名单中
+	if file.GetDb().IsBlacklisted(clientIP, connType) {
+		logs.Warn("IP %s 在黑名单中，拒绝 %s 连接请求", clientIP, connType)
+		logs.Info("黑名单配置: %+v", file.GetDb().GetBlacklistConfig())
+		return nil, errors.New(fmt.Sprintf("IP %s 在黑名单中", clientIP))
+	}
+	logs.Info("IP %s 不在黑名单中", clientIP)
+	
+	// 记录连接尝试，如果达到阈值会自动加入黑名单
+	if file.GetDb().RecordConnection(clientIP, connType) {
+		logs.Warn("IP %s 触发黑名单规则，已加入黑名单", clientIP)
+		logs.Info("当前黑名单列表: %+v", file.GetDb().GetBlacklistEntries())
+		return nil, errors.New(fmt.Sprintf("IP %s 已被加入黑名单", clientIP))
+	}
+	logs.Info("IP %s 连接尝试已记录", clientIP)
 	if v, ok := s.Client.Load(clientId); ok {
 		//If ip is restricted to do ip verification
 		if s.ipVerify {

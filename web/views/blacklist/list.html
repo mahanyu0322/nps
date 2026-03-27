@@ -1,0 +1,98 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">黑名单管理</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="table-toolbar">
+                            <div class="btn-group">
+                                <a href="{{.web_base_url}}/blacklist/add" class="btn btn-primary add-btn">
+                                    添加 <i class="fa fa-plus"></i>
+                                </a>
+                            </div>
+                            <div class="btn-group">
+                                <a href="{{.web_base_url}}/blacklist/config" class="btn btn-success">
+                                    配置 <i class="fa fa-cog"></i>
+                                </a>
+                            </div>
+                            <div class="btn-group">
+                                <button id="refresh-btn" class="btn btn-info">
+                                    刷新 <i class="fa fa-sync"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <table class="table table-striped table-bordered" id="auto-table">
+                            <thead>
+                                <tr>
+                                    <th>IP地址</th>
+                                    <th>连接类型</th>
+                                    <th>原因</th>
+                                    <th>添加时间</th>
+                                    <th>过期时间</th>
+                                    <th>尝试次数</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+        var table = initTable("#auto-table", {
+            url: "{{.web_base_url}}/blacklist/getlist",
+            showPage: false,
+            pageSize: 999,
+            columns: [
+                {field: 'ip'},
+                {field: 'connection_type'},
+                {field: 'reason'},
+                {field: 'add_time'},
+                {field: 'expire_time'},
+                {field: 'count'},
+                {
+                    field: 'operation',
+                    formatter: function (value, row, index) {
+                        return '<a class="btn btn-sm btn-danger del" href="#" data-ip="' + row.ip + '">删除</a>';
+                    }
+                }
+            ]
+        });
+
+        $(document).on("click", '.del', function (event) {
+            event.preventDefault();
+            var ip = $(this).data('ip');
+            layer.confirm('确定要删除该黑名单记录吗？', {
+                btn: ['确定', '取消']
+            }, function (index) {
+                $.post("{{.web_base_url}}/blacklist/del", {ip: ip}, function (data) {
+                    layer.msg(data.msg);
+                    if (data.status) {
+                        table.reload();
+                    }
+                }, "json");
+                layer.close(index);
+            });
+        });
+
+        // 添加刷新按钮事件
+        $("#refresh-btn").click(function() {
+            table.bootstrapTable('refresh');
+        });
+        
+        // 页面加载完成后自动刷新一次
+        $(document).ready(function() {
+            setTimeout(function() {
+                table.bootstrapTable('refresh');
+            }, 500);
+        });
+    });
+</script> 

@@ -1,0 +1,180 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">黑名单配置</h3>
+            </div>
+            <div class="card-body">
+                <form id="config-form" class="form-horizontal form-label-left">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label col-md-3">启用黑名单</label>
+                                <div class="col-md-9">
+                                    <input type="checkbox" name="enabled" class="make-switch" data-on-text="是" data-off-text="否" {{if .config.Enabled}}checked{{end}}>
+                                </div>
+                            </div>
+                            <fieldset>
+                                <legend>连接类型监控</legend>
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">监控SSH</label>
+                                    <div class="col-md-9">
+                                        <input type="checkbox" name="ssh_enabled" class="make-switch" data-on-text="是" data-off-text="否" {{if .config.SSHEnabled}}checked{{end}}>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">SSH阈值</label>
+                                    <div class="col-md-9">
+                                        <input type="number" name="ssh_threshold" class="form-control" min="1" value="{{.config.SSHThreshold}}">
+                                        <span class="help-block">在配置的时间窗口内连接尝试次数超过此值将被加入黑名单</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">监控RDP</label>
+                                    <div class="col-md-9">
+                                        <input type="checkbox" name="rdp_enabled" class="make-switch" data-on-text="是" data-off-text="否" {{if .config.RDPEnabled}}checked{{end}}>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">RDP阈值</label>
+                                    <div class="col-md-9">
+                                        <input type="number" name="rdp_threshold" class="form-control" min="1" value="{{.config.RDPThreshold}}">
+                                        <span class="help-block">在配置的时间窗口内连接尝试次数超过此值将被加入黑名单</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">监控HTTP</label>
+                                    <div class="col-md-9">
+                                        <input type="checkbox" name="http_enabled" class="make-switch" data-on-text="是" data-off-text="否" {{if .config.HTTPEnabled}}checked{{end}}>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">HTTP阈值</label>
+                                    <div class="col-md-9">
+                                        <input type="number" name="http_threshold" class="form-control" min="1" value="{{.config.HTTPThreshold}}">
+                                        <span class="help-block">在配置的时间窗口内连接尝试次数超过此值将被加入黑名单</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">监控其他类型</label>
+                                    <div class="col-md-9">
+                                        <input type="checkbox" name="other_enabled" class="make-switch" data-on-text="是" data-off-text="否" {{if .config.OtherEnabled}}checked{{end}}>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">其他类型阈值</label>
+                                    <div class="col-md-9">
+                                        <input type="number" name="other_threshold" class="form-control" min="1" value="{{.config.OtherThreshold}}">
+                                        <span class="help-block">在配置的时间窗口内连接尝试次数超过此值将被加入黑名单</span>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <fieldset>
+                                <legend>黑名单设置</legend>
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">时间窗口（分钟）</label>
+                                    <div class="col-md-9">
+                                        <input type="number" name="time_window" class="form-control" min="1" value="{{if .config.TimeWindow}}{{.config.TimeWindow}}{{else}}1{{end}}">
+                                        <span class="help-block">计算连接次数的时间窗口，例如：5分钟内连接超过阈值</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">黑名单时长（分钟）</label>
+                                    <div class="col-md-9">
+                                        <input type="number" name="blacklist_time" class="form-control" min="0" value="{{.config.BlacklistTime}}">
+                                        <span class="help-block">设置为0表示永久拉黑</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">白名单IP列表</label>
+                                    <div class="col-md-9">
+                                        <textarea name="whitelist_ips" class="form-control" rows="5" placeholder="输入IP地址，多个IP用逗号分隔">{{.whitelist_ips}}</textarea>
+                                        <span class="help-block">白名单中的IP不受任何连接限制，多个IP请用逗号分隔</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-md-3">快速添加到白名单</label>
+                                    <div class="col-md-9">
+                                        <div class="input-group">
+                                            <input type="text" id="quick-add-ip" class="form-control" placeholder="输入IP地址">
+                                            <span class="input-group-btn">
+                                                <button id="add-to-whitelist" class="btn btn-success" type="button">添加到白名单</button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <div class="form-group">
+                                <div class="col-md-offset-3 col-md-9">
+                                    <button type="submit" class="btn btn-success">保存</button>
+                                    <button type="button" id="direct-submit" class="btn btn-primary">保存并返回</button>
+                                    <a href="{{.web_base_url}}/blacklist/list" class="btn btn-default">返回</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+        $("#config-form").validate({
+            submitHandler: function (form) {
+                $.post("{{.web_base_url}}/blacklist/config", $(form).serialize(), function (data) {
+                    layer.msg(data.msg);
+                    if (data.status) {
+                        setTimeout(function () {
+                            window.location.href = "{{.web_base_url}}/blacklist/list";
+                        }, 1000);
+                    }
+                }, "json");
+            }
+        });
+
+        $(".make-switch").bootstrapSwitch();
+        
+        // 添加一个直接提交按钮，可以直接提交表单，不使用AJAX
+        $("#direct-submit").click(function() {
+            $("#config-form").attr("action", "{{.web_base_url}}/blacklist/config");
+            $("#config-form").submit();
+        });
+        
+        // 添加IP到白名单功能
+        $("#add-to-whitelist").click(function() {
+            var ip = $("#quick-add-ip").val().trim();
+            if (!ip) {
+                layer.msg("请输入IP地址");
+                return;
+            }
+            
+            // IP格式验证
+            var ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+            if (!ipRegex.test(ip)) {
+                layer.msg("请输入有效的IP地址，例如：192.168.1.1");
+                return;
+            }
+            
+            // 添加到白名单
+            $.post("{{.web_base_url}}/blacklist/addToWhitelist", {ip: ip}, function(data) {
+                if (data.status) {
+                    layer.msg("IP已添加到白名单");
+                    
+                    // 更新文本框内容
+                    var currentIps = $("textarea[name='whitelist_ips']").val();
+                    if (currentIps) {
+                        $("textarea[name='whitelist_ips']").val(currentIps + ", " + ip);
+                    } else {
+                        $("textarea[name='whitelist_ips']").val(ip);
+                    }
+                    
+                    // 清空输入框
+                    $("#quick-add-ip").val("");
+                } else {
+                    layer.msg("添加失败: " + data.msg);
+                }
+            }, "json");
+        });
+    });
+</script> 

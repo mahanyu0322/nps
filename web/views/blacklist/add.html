@@ -1,0 +1,76 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">添加黑名单</h3>
+            </div>
+            <div class="card-body">
+                <form id="add-form" class="form-horizontal form-label-left">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label col-md-3">IP地址 <span class="required">*</span></label>
+                                <div class="col-md-9">
+                                    <input type="text" name="ip" required class="form-control" placeholder="请输入IP地址">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">连接类型 <span class="required">*</span></label>
+                                <div class="col-md-9">
+                                    <select name="conn_type" class="form-control">
+                                        <option value="all">所有类型</option>
+                                        <option value="ssh">SSH</option>
+                                        <option value="rdp">RDP</option>
+                                        <option value="http">HTTP</option>
+                                        <option value="other">其他</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">原因</label>
+                                <div class="col-md-9">
+                                    <input type="text" name="reason" class="form-control" placeholder="请输入拉黑原因">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3">永久拉黑</label>
+                                <div class="col-md-9">
+                                    <input type="checkbox" name="permanent" class="make-switch" data-on-text="是" data-off-text="否">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-offset-3 col-md-9">
+                                    <button type="submit" class="btn btn-success">提交</button>
+                                    <button type="button" id="direct-submit" class="btn btn-primary">提交并返回</button>
+                                    <a href="{{.web_base_url}}/blacklist/list" class="btn btn-default">返回</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+        $("#add-form").validate({
+            submitHandler: function (form) {
+                $.post("{{.web_base_url}}/blacklist/add", $(form).serialize(), function (data) {
+                    layer.msg(data.msg);
+                    if (data.status) {
+                        window.location.href = "{{.web_base_url}}/blacklist/list";
+                    }
+                }, "json");
+            }
+        });
+
+        $(".make-switch").bootstrapSwitch();
+        
+        // 添加一个直接提交按钮，可以直接提交表单，不使用AJAX
+        $("#direct-submit").click(function() {
+            $("#add-form").attr("action", "{{.web_base_url}}/blacklist/add");
+            $("#add-form").submit();
+        });
+    });
+</script> 

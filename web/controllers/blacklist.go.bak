@@ -1,0 +1,136 @@
+package controllers
+
+import (
+	"ehang.io/nps/lib/file"
+	"github.com/astaxie/beego/logs"
+)
+
+type BlacklistController struct {
+	BaseController
+}
+
+// 黑名单列表页面
+func (s *BlacklistController) List() {
+	s.Data["menu"] = "blacklist"
+	s.Data["type"] = "blacklist"
+	s.display("blacklist/list")
+}
+
+// 获取黑名单列表
+func (s *BlacklistController) GetList() {
+	// 获取黑名单条目
+	entries := file.GetDb().GetBlacklistEntries()
+	list := make([]map[string]interface{}, 0)
+	
+	for ip, entry := range entries {
+		entryMap := make(map[string]interface{})
+		entryMap["ip"] = ip
+		entryMap["reason"] = entry.Reason
+		entryMap["connection_type"] = entry.ConnectionType
+		entryMap["add_time"] = entry.AddTime.Format("2006-01-02 15:04:05")
+		
+		if entry.ExpireTime.IsZero() {
+			entryMap["expire_time"] = "永久"
+		} else {
+			entryMap["expire_time"] = entry.ExpireTime.Format("2006-01-02 15:04:05")
+		}
+		
+		entryMap["count"] = entry.Count
+		
+		list = append(list, entryMap)
+	}
+	
+	s.AjaxTable(list, len(list), len(list), nil)
+}
+
+// 添加IP到黑名单
+func (s *BlacklistController) Add() {
+	if s.Ctx.Request.Method == "GET" {
+		s.Data["menu"] = "blacklist"
+		s.Data["type"] = "blacklist"
+		s.display("blacklist/add")
+		return
+	}
+	
+	ip := s.getEscapeString("ip")
+	reason := s.getEscapeString("reason")
+	connType := s.getEscapeString("conn_type")
+	permanent := s.GetBoolNoErr("permanent")
+	
+	file.GetDb().AddToBlacklist(ip, reason, connType, permanent)
+	s.AjaxOk("添加成功")
+}
+
+// 移除IP
+func (s *BlacklistController) Del() {
+	ip := s.getEscapeString("ip")
+	file.GetDb().RemoveFromBlacklist(ip)
+	s.AjaxOk("删除成功")
+}
+
+// 配置页面
+func (s *BlacklistController) Config() {
+	if s.Ctx.Request.Method == "GET" {
+		// 检查是否有配置参数，如果有则是通过GET请求更新配置
+		if s.GetString("enabled") != "" || s.GetString("ssh_threshold") != "" {
+			logs.Info("通过GET请求更新黑名单配置，参数: enabled=%v, ssh_threshold=%v", 
+				s.GetString("enabled"), s.GetString("ssh_threshold"))
+			
+			config := file.BlacklistConfig{
+				Enabled:        s.GetString("enabled") == "on",
+				SSHEnabled:     s.GetString("ssh_enabled") == "on",
+				RDPEnabled:     s.GetString("rdp_enabled") == "on",
+				HTTPEnabled:    s.GetString("http_enabled") == "on",
+				OtherEnabled:   s.GetString("other_enabled") == "on",
+				SSHThreshold:   s.GetIntNoErr("ssh_threshold"),
+				RDPThreshold:   s.GetIntNoErr("rdp_threshold"),
+				HTTPThreshold:  s.GetIntNoErr("http_threshold"),
+				OtherThreshold: s.GetIntNoErr("other_threshold"),
+				BlacklistTime:  s.GetIntNoErr("blacklist_time"),
+			}
+			
+			logs.Info("解析后的配置: %+v", config)
+			file.GetDb().UpdateBlacklistConfig(config)
+			
+			// 重定向到黑名单列表页面
+			s.Redirect(s.Data["web_base_url"].(string)+"/blacklist/list", 302)
+			return
+		}
+		
+		// 无参数GET请求，显示配置页面
+		s.Data["menu"] = "blacklist"
+		s.Data["type"] = "blacklist"
+		s.Data["config"] = file.GetDb().GetBlacklistConfig()
+		s.display("blacklist/config")
+		return
+	}
+	
+	// POST请求处理
+	logs.Info("通过POST请求更新黑名单配置，参数: enabled=%v, ssh_threshold=%v", 
+		s.GetString("enabled"), s.GetString("ssh_threshold"))
+	
+	config := file.BlacklistConfig{
+		Enabled:        s.GetString("enabled") == "on",
+		SSHEnabled:     s.GetString("ssh_enabled") == "on",
+		RDPEnabled:     s.GetString("rdp_enabled") == "on",
+		HTTPEnabled:    s.GetString("http_enabled") == "on",
+		OtherEnabled:   s.GetString("other_enabled") == "on",
+		SSHThreshold:   s.GetIntNoErr("ssh_threshold"),
+		RDPThreshold:   s.GetIntNoErr("rdp_threshold"),
+		HTTPThreshold:  s.GetIntNoErr("http_threshold"),
+		OtherThreshold: s.GetIntNoErr("other_threshold"),
+		BlacklistTime:  s.GetIntNoErr("blacklist_time"),
+	}
+	
+	logs.Info("解析后的配置: %+v", config)
+	file.GetDb().UpdateBlacklistConfig(config)
+	
+	// 检查是否是Ajax请求
+	if s.Ctx.Input.IsAjax() {
+		// Ajax请求返回JSON
+		s.AjaxOk("配置已更新")
+	} else {
+		// 普通表单提交重定向到黑名单列表页面
+		s.Redirect(s.Data["web_base_url"].(string)+"/blacklist/list", 302)
+	}
+} 

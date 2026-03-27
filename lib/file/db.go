@@ -11,6 +11,7 @@ import (
 	"ehang.io/nps/lib/common"
 	"ehang.io/nps/lib/crypt"
 	"ehang.io/nps/lib/rate"
+	"github.com/astaxie/beego/logs"
 )
 
 type DbUtils struct {
@@ -358,4 +359,83 @@ func (s *DbUtils) GetInfoByHost(host string, r *http.Request) (h *Host, err erro
 	}
 	err = errors.New("The host could not be parsed")
 	return
+}
+
+// 检查IP是否在黑名单中
+func (s *DbUtils) IsBlacklisted(ip, connType string) bool {
+	return s.JsonDb.Blacklist.IsBlacklisted(ip, connType)
+}
+
+// 记录连接尝试，如果触发阈值则加入黑名单
+func (s *DbUtils) RecordConnection(ip string, connType string) bool {
+	// 记录连接并检查是否应该加入黑名单
+	blacklisted := s.JsonDb.Blacklist.RecordConnection(ip, connType)
+	if blacklisted {
+		// 保存黑名单到文件
+		s.JsonDb.StoreBlacklistToJsonFile()
+	}
+	return blacklisted
+}
+
+// 添加IP到黑名单
+func (s *DbUtils) AddToBlacklist(ip, reason, connType string, permanent bool) {
+	s.JsonDb.Blacklist.AddToBlacklist(ip, reason, connType, permanent)
+	s.JsonDb.StoreBlacklistToJsonFile()
+}
+
+// 从黑名单中移除IP
+func (s *DbUtils) RemoveFromBlacklist(ip string) {
+	s.JsonDb.Blacklist.RemoveFromBlacklist(ip)
+	s.JsonDb.StoreBlacklistToJsonFile()
+}
+
+// 获取黑名单条目
+func (s *DbUtils) GetBlacklistEntries() map[string]*BlacklistEntry {
+	return s.JsonDb.Blacklist.GetEntries()
+}
+
+// 获取黑名单配置
+func (s *DbUtils) GetBlacklistConfig() BlacklistConfig {
+	return s.JsonDb.Blacklist.GetConfig()
+}
+
+// 更新黑名单配置
+func (s *DbUtils) UpdateBlacklistConfig(config BlacklistConfig) {
+	logs.Info("正在更新黑名单配置: %+v", config)
+	s.JsonDb.Blacklist.UpdateConfig(config)
+	if err := s.JsonDb.StoreBlacklistToJsonFile(); err != nil {
+		logs.Error("保存黑名单配置到文件失败: %v", err)
+	} else {
+		logs.Info("黑名单配置已更新并保存到文件")
+	}
+}
+
+// 添加IP到白名单
+func (s *DbUtils) AddToWhitelist(ip string) {
+	s.JsonDb.Blacklist.AddToWhitelist(ip)
+	s.JsonDb.StoreBlacklistToJsonFile()
+}
+
+// 从白名单中移除IP
+func (s *DbUtils) RemoveFromWhitelist(ip string) {
+	s.JsonDb.Blacklist.RemoveFromWhitelist(ip)
+	s.JsonDb.StoreBlacklistToJsonFile()
+}
+
+// 获取白名单IPs
+func (s *DbUtils) GetWhitelistIPs() []string {
+	return s.JsonDb.Blacklist.GetWhitelistIPs()
+}
+
+// 检查IP是否在白名单中
+func (s *DbUtils) IsWhitelisted(ip string) bool {
+	return s.JsonDb.Blacklist.IsWhitelisted(ip)
+}
+
+func (s *DbUtils) GetBlacklistedEntries() map[string]*BlacklistEntry {
+	return s.JsonDb.Blacklist.GetBlacklistedEntries()
+}
+
+func (s *DbUtils) GetAllBlacklistEntries() map[string]*BlacklistEntry {
+	return s.JsonDb.Blacklist.GetAllEntries()
 }

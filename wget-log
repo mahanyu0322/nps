@@ -1,0 +1,30 @@
+--2025-05-06 21:45:36--  https://github.com/upx/upx/releases/download/v3.95/upx-3.95-amd64_linux.tar.xz
+Connecting to 113.45.165.45:7890... failed: Connection timed out.
+Retrying.
+
+--2025-05-06 21:47:48--  (try: 2)  https://github.com/upx/upx/releases/download/v3.95/upx-3.95-amd64_linux.tar.xz
+Connecting to 113.45.165.45:7890... failed: Connection timed out.
+Retrying.
+
+--2025-05-06 21:50:00--  (try: 3)  https://github.com/upx/upx/releases/download/v3.95/upx-3.95-amd64_linux.tar.xz
+Connecting to 113.45.165.45:7890... failed: Connection timed out.
+Retrying.
+
+--2025-05-06 21:52:14--  (try: 4)  https://github.com/upx/upx/releases/download/v3.95/upx-3.95-amd64_linux.tar.xz
+Connecting to 113.45.165.45:7890... failed: Connection timed out.
+Retrying.
+
+--2025-05-06 21:54:28--  (try: 5)  https://github.com/upx/upx/releases/download/v3.95/upx-3.95-amd64_linux.tar.xz
+Connecting to 113.45.165.45:7890... failed: Connection timed out.
+Retrying.
+
+--2025-05-06 21:56:44--  (try: 6)  https://github.com/upx/upx/releases/download/v3.95/upx-3.95-amd64_linux.tar.xz
+Connecting to 113.45.165.45:7890... failed: Connection timed out.
+Retrying.
+
+--2025-05-06 21:59:00--  (try: 7)  https://github.com/upx/upx/releases/download/v3.95/upx-3.95-amd64_linux.tar.xz
+Connecting to 113.45.165.45:7890... failed: Connection timed out.
+Retrying.
+
+--2025-05-06 22:01:17--  (try: 8)  https://github.com/upx/upx/releases/download/v3.95/upx-3.95-amd64_linux.tar.xz
+Connecting to 113.45.165.45:7890... 

@@ -1,0 +1,3 @@
+nohup: ignoring input
+2026/02/12 11:59:01.098 [1;31m[E][0m [nps.go:132]  Valid actions: ["start" "stop" "restart" "install" "uninstall"]
+Failed to start nps内网穿透代理服务器: exit status 5
