@@ -1,0 +1,300 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">代理管理（Mihomo）</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>版本</label>
+                            <input type="text" id="mihomo-version" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>服务状态</label>
+                            <input type="text" id="mihomo-active" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>开机自启</label>
+                            <input type="text" id="mihomo-enabled" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Controller状态</label>
+                            <input type="text" id="mihomo-controller-status" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>当前规则模式</label>
+                            <input type="text" id="mihomo-mode" class="form-control" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 8px;">
+                    <div class="col-md-12">
+                        <div class="btn-group">
+                            <button id="mihomo-start" class="btn btn-success">开启代理</button>
+                            <button id="mihomo-stop" class="btn btn-warning">关闭代理</button>
+                            <button id="mihomo-restart" class="btn btn-danger">重启代理</button>
+                            <button id="mihomo-validate" class="btn btn-info">校验配置</button>
+                            <button id="mihomo-test-proxy" class="btn btn-primary">代理可用性测试</button>
+                            <button id="mihomo-refresh-status" class="btn btn-default">刷新状态</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 10px;">
+                    <div class="col-md-12">
+                        <div class="btn-group">
+                            <button id="mihomo-mode-rule" class="btn btn-default">规则模式 Rule</button>
+                            <button id="mihomo-mode-global" class="btn btn-default">全局模式 Global</button>
+                            <button id="mihomo-mode-direct" class="btn btn-default">直连模式 Direct</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 16px;">
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label>订阅链接更新</label>
+                            <div class="input-group">
+                                <input type="text" id="mihomo-subscription-url" class="form-control" placeholder="输入订阅链接 https://...">
+                                <span class="input-group-btn">
+                                    <button id="mihomo-update-subscription" class="btn btn-primary">更新订阅</button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>自动更新节点</label>
+                            <div>
+                                <label style="font-weight: normal; margin-top: 8px;">
+                                    <input type="checkbox" id="mihomo-auto-update"> 启用 mihomo-update.timer
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 8px;">
+                    <div class="col-md-5">
+                        <div class="form-group">
+                            <label>代理组</label>
+                            <select id="mihomo-group" class="form-control"></select>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="form-group">
+                            <label>节点</label>
+                            <select id="mihomo-node" class="form-control"></select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button id="mihomo-switch-node" class="btn btn-primary btn-block">切换节点</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 8px;">
+                    <div class="col-md-6">
+                        <label>命令输出 / 状态</label>
+                        <textarea id="mihomo-output" class="form-control" rows="12" readonly></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <div style="display:flex; justify-content: space-between; align-items: center;">
+                            <label style="margin:0;">实时日志</label>
+                            <div>
+                                <label style="font-weight: normal; margin-right: 12px;">
+                                    <input type="checkbox" id="mihomo-log-auto" checked> 自动刷新
+                                </label>
+                                <button id="mihomo-refresh-logs" class="btn btn-default btn-sm">刷新日志</button>
+                            </div>
+                        </div>
+                        <textarea id="mihomo-logs" class="form-control" rows="12" readonly style="margin-top: 8px;"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+        var mihomoApiBase = "{{.web_base_url}}/blacklist/mihomo";
+        var mihomoGroups = [];
+        function showMihomoOutput(text) {
+            $("#mihomo-output").val(text || "");
+        }
+        function postMihomo(path, data, successMessage) {
+            $.post(mihomoApiBase + path, data || {}, function (res) {
+                if (res.status) {
+                    if (successMessage) {
+                        layer.msg(successMessage);
+                    }
+                    if (res.data && res.data.output) {
+                        showMihomoOutput(res.data.output);
+                    } else {
+                        showMihomoOutput(res.msg || "");
+                    }
+                } else {
+                    layer.msg(res.msg || "操作失败");
+                    showMihomoOutput(res.msg || "操作失败");
+                }
+            }, "json").fail(function (xhr) {
+                showMihomoOutput(xhr.responseText || "请求失败");
+                layer.msg("请求失败");
+            });
+        }
+        function fillNodeOptions(groupName, selectedNode) {
+            var targetGroup = null;
+            $.each(mihomoGroups, function (_, g) {
+                if (g.name === groupName) {
+                    targetGroup = g;
+                    return false;
+                }
+            });
+            var nodeSelect = $("#mihomo-node");
+            nodeSelect.empty();
+            if (!targetGroup || !targetGroup.nodes || !targetGroup.nodes.length) {
+                nodeSelect.append('<option value="">无可用节点</option>');
+                return;
+            }
+            $.each(targetGroup.nodes, function (_, node) {
+                var selected = "";
+                if (selectedNode && selectedNode === node) {
+                    selected = " selected";
+                }
+                nodeSelect.append('<option value="' + node + '"' + selected + '>' + node + '</option>');
+            });
+            if (!selectedNode && targetGroup.now) {
+                nodeSelect.val(targetGroup.now);
+            }
+        }
+        function loadMihomoProxies() {
+            $.get(mihomoApiBase + "/proxies", function (res) {
+                if (!res.status) {
+                    showMihomoOutput(res.msg || "获取代理组失败");
+                    return;
+                }
+                mihomoGroups = (res.data && res.data.groups) || [];
+                var groupSelect = $("#mihomo-group");
+                groupSelect.empty();
+                if (!mihomoGroups.length) {
+                    groupSelect.append('<option value="">未获取到代理组</option>');
+                    $("#mihomo-node").empty().append('<option value="">未获取到节点</option>');
+                    return;
+                }
+                $.each(mihomoGroups, function (_, group) {
+                    groupSelect.append('<option value="' + group.name + '">' + group.name + '</option>');
+                });
+                var firstGroup = mihomoGroups[0];
+                fillNodeOptions(firstGroup.name, firstGroup.now || "");
+            }, "json").fail(function (xhr) {
+                showMihomoOutput(xhr.responseText || "获取代理组失败");
+            });
+        }
+        function loadMihomoStatus() {
+            $.get(mihomoApiBase + "/status", function (res) {
+                if (!res.status) {
+                    showMihomoOutput(res.msg || "获取状态失败");
+                    return;
+                }
+                var data = res.data || {};
+                $("#mihomo-version").val(data.version || "");
+                $("#mihomo-active").val(data.active || "");
+                $("#mihomo-enabled").val(data.enabled || "");
+                $("#mihomo-controller-status").val(data.controller_status || "");
+                $("#mihomo-mode").val(data.mode || "");
+                $("#mihomo-subscription-url").val(data.subscription_url || "");
+                $("#mihomo-auto-update").prop("checked", !!data.auto_update);
+                showMihomoOutput(data.status || "");
+            }, "json").fail(function (xhr) {
+                showMihomoOutput(xhr.responseText || "获取状态失败");
+            });
+        }
+        function loadMihomoLogs() {
+            $.get(mihomoApiBase + "/logs", {lines: 120}, function (res) {
+                if (!res.status) {
+                    $("#mihomo-logs").val(res.msg || "获取日志失败");
+                    return;
+                }
+                $("#mihomo-logs").val((res.data && res.data.output) || "");
+            }, "json");
+        }
+        $("#mihomo-refresh-status").click(function () {
+            loadMihomoStatus();
+            loadMihomoProxies();
+        });
+        $("#mihomo-start").click(function () {
+            postMihomo("/control", {action: "start"}, "代理已开启");
+            setTimeout(loadMihomoStatus, 500);
+        });
+        $("#mihomo-stop").click(function () {
+            postMihomo("/control", {action: "stop"}, "代理已关闭");
+            setTimeout(loadMihomoStatus, 500);
+        });
+        $("#mihomo-restart").click(function () {
+            postMihomo("/control", {action: "restart"}, "代理已重启");
+            setTimeout(loadMihomoStatus, 800);
+        });
+        $("#mihomo-validate").click(function () {
+            postMihomo("/validate", {}, "配置校验完成");
+        });
+        $("#mihomo-update-subscription").click(function () {
+            var subscriptionUrl = $.trim($("#mihomo-subscription-url").val());
+            postMihomo("/updateSubscription", {url: subscriptionUrl}, "订阅更新任务已触发");
+            setTimeout(function () {
+                loadMihomoStatus();
+                loadMihomoLogs();
+            }, 1000);
+        });
+        $("#mihomo-group").change(function () {
+            fillNodeOptions($(this).val(), "");
+        });
+        $("#mihomo-switch-node").click(function () {
+            var group = $("#mihomo-group").val();
+            var node = $("#mihomo-node").val();
+            postMihomo("/switchNode", {group: group, node: node}, "节点切换成功");
+            setTimeout(function () {
+                loadMihomoProxies();
+                loadMihomoLogs();
+            }, 500);
+        });
+        $("#mihomo-test-proxy").click(function () {
+            postMihomo("/testProxy", {}, "代理可用性测试完成");
+        });
+        $("#mihomo-auto-update").change(function () {
+            var enabled = $(this).is(":checked");
+            postMihomo("/autoUpdate", {enabled: enabled}, "自动更新设置已更新");
+            setTimeout(loadMihomoStatus, 500);
+        });
+        $("#mihomo-mode-rule").click(function () {
+            postMihomo("/switchMode", {mode: "rule"}, "已切换到规则模式");
+            setTimeout(loadMihomoStatus, 500);
+        });
+        $("#mihomo-mode-global").click(function () {
+            postMihomo("/switchMode", {mode: "global"}, "已切换到全局模式");
+            setTimeout(loadMihomoStatus, 500);
+        });
+        $("#mihomo-mode-direct").click(function () {
+            postMihomo("/switchMode", {mode: "direct"}, "已切换到直连模式");
+            setTimeout(loadMihomoStatus, 500);
+        });
+        $("#mihomo-refresh-logs").click(function () {
+            loadMihomoLogs();
+        });
+        loadMihomoStatus();
+        loadMihomoProxies();
+        loadMihomoLogs();
+        setInterval(function () {
+            if ($("#mihomo-log-auto").is(":checked")) {
+                loadMihomoLogs();
+            }
+        }, 3000);
+    });
+</script>

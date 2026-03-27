@@ -99,6 +99,10 @@
                     <a href="{{.web_base_url}}/blacklist/list"><i class="fa fa-ban fa-lg"></i>
                     <span class="nav-label">黑名单</span></a>
                 </li>
+                <li class="{{if eq "blacklist_proxy" .menu}}active{{end}}">
+                    <a href="{{.web_base_url}}/blacklist/proxy"><i class="fa fa-network-wired fa-lg"></i>
+                    <span class="nav-label">代理管理</span></a>
+                </li>
                 <li class="{{if eq "help" .menu}}active{{end}}">
                     <a href="https://ehang.io/nps/documents" target="_blank"><i class="fa fa-lightbulb fa-lg"></i>
                     <span class="nav-label" langtag="word-help"></span></a>
@@ -159,4 +163,3 @@
 */
 </script>
 {{/*<script src="http://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>*/}}
-
