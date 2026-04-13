@@ -141,6 +141,10 @@
 		<zh-CN>带宽</zh-CN>
 		<en-US>Bandwidth</en-US>
 	</lang>
+	<lang id="word-bindip">
+		<zh-CN>监听 IP</zh-CN>
+		<en-US>Bind IP</en-US>
+	</lang>
 	<lang id="word-basicpassword">
 		<zh-CN>Basic 认证密码</zh-CN>
 		<en-US>Basic authentication password</en-US>
@@ -244,6 +248,10 @@
 	<lang id="word-flowlimit">
 		<zh-CN>流量限制</zh-CN>
 		<en-US>Flow limit</en-US>
+	</lang>
+	<lang id="word-force127001">
+		<zh-CN>强制本机访问</zh-CN>
+		<en-US>Force localhost</en-US>
 	</lang>
 	<lang id="word-go">
 		<zh-CN>进入</zh-CN>
@@ -577,6 +585,10 @@
 	<lang id="info-casetcp">
 		<zh-CN>通过公网服务器1.1.1.1的8001端口，连接内网机器10.1.50.101的22端口，实现SSH连接。</zh-CN>
 		<en-US>Connect port 8001 of public server 1.1.1.1 to port 22 of Intranet machine 10.1.50.101 to realize SSH connection.</en-US>
+	</lang>
+	<lang id="info-force127001">
+		<zh-CN>勾选后，此 TCP 隧道只监听 127.0.0.1，必须通过 Nginx 等反向代理访问；不勾选则保留公网监听。</zh-CN>
+		<en-US>When enabled, this TCP tunnel only listens on 127.0.0.1 and must be accessed through a reverse proxy such as Nginx. When disabled, it keeps a public listener.</en-US>
 	</lang>
 	<lang id="info-caseudp">
 		<zh-CN>通过公网服务器1.1.1.1的53端口，访问内网机器10.1.50.101的53端口，使用DNS服务。</zh-CN>

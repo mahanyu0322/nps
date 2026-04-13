@@ -43,13 +43,27 @@
                             <input value="{{.t.Remark}}" class="form-control" type="text" name="remark" placeholder="" langtag="info-unrestricted">
                         </div>
                     </div>
-                {{if eq true .allow_multi_ip}}
-                    <div class="form-group" id="server_ip">
-                        <label class="col-sm-2 control-label font-bold" langtag="word-serverip"></label>
+                    <div class="form-group" id="bind_localhost">
+                        <label class="col-sm-2 control-label font-bold" langtag="word-force127001"></label>
                         <div class="col-sm-10">
-                            <input class="form-control" type="text" value="{{.t.ServerIp}}" name="server_ip" placeholder="" langtag="info-suchasip">
+                            <div class="checkbox i-checks">
+                                <label>
+                                    <input id="force_localhost" type="checkbox" value="1" {{if eq .t.ServerIp "127.0.0.1"}}checked{{end}}>
+                                    <i></i>
+                                    <span langtag="info-force127001"></span>
+                                </label>
+                            </div>
                         </div>
                     </div>
+                {{if eq true .allow_multi_ip}}
+                    <div class="form-group" id="server_ip_group">
+                        <label class="col-sm-2 control-label font-bold" langtag="word-serverip"></label>
+                        <div class="col-sm-10">
+                            <input class="form-control" id="server_ip_input" type="text" value="{{if .t.ServerIp}}{{.t.ServerIp}}{{else}}0.0.0.0{{end}}" name="server_ip" placeholder="" langtag="info-suchasip">
+                        </div>
+                    </div>
+                {{else}}
+                    <input id="server_ip_hidden" type="hidden" name="server_ip" value="{{if .t.ServerIp}}{{.t.ServerIp}}{{else}}0.0.0.0{{end}}">
                 {{end}}
                     <div class="form-group" id="port">
                         <label class="col-sm-2 control-label font-bold" langtag="word-serverport"></label>
@@ -114,14 +128,47 @@
 </div>
 <script>
     var arr = []
-    arr["all"] = ["port", "target", "password", "local_path", "strip_pre", "local_proxy"]
-    arr["tcp"] = ["client_id", "port", "target", "local_proxy"]
-    arr["udp"] = ["client_id", "port", "target", "local_proxy"]
-    arr["socks5"] = ["client_id", "port"]
-    arr["httpProxy"] = ["client_id", "port"]
-    arr["secret"] = ["client_id", "target", "password"]
-    arr["p2p"] = ["client_id", "target", "password"]
-    arr["file"] = ["client_id", "port", "local_path", "strip_pre"]
+    arr["all"] = ["port", "target", "password", "local_path", "strip_pre", "local_proxy", "server_ip_group", "bind_localhost"]
+    arr["tcp"] = ["client_id", "port", "target", "local_proxy", "server_ip_group", "bind_localhost"]
+    arr["udp"] = ["client_id", "port", "target", "local_proxy", "server_ip_group"]
+    arr["socks5"] = ["client_id", "port", "server_ip_group"]
+    arr["httpProxy"] = ["client_id", "port", "server_ip_group"]
+    arr["secret"] = ["client_id", "target", "password", "server_ip_group"]
+    arr["p2p"] = ["client_id", "target", "password", "server_ip_group"]
+    arr["file"] = ["client_id", "port", "local_path", "strip_pre", "server_ip_group"]
+
+    function getServerIpInput() {
+        return $("#server_ip_input");
+    }
+
+    function getServerIpHidden() {
+        return $("#server_ip_hidden");
+    }
+
+    function syncServerIpValue() {
+        var isTcp = $("#type").val() === "tcp";
+        var forceLocalhost = isTcp && $("#force_localhost").is(":checked");
+        var input = getServerIpInput();
+        var hidden = getServerIpHidden();
+
+        if (input.length) {
+            if (forceLocalhost) {
+                input.val("127.0.0.1");
+                input.prop("readonly", true);
+            } else {
+                input.prop("readonly", false);
+                if (!input.val() || input.val() === "127.0.0.1") {
+                    input.val(input.data("last-unforced") || "0.0.0.0");
+                }
+                input.data("last-unforced", input.val() || "0.0.0.0");
+            }
+            return;
+        }
+
+        if (hidden.length) {
+            hidden.val(forceLocalhost ? "127.0.0.1" : (hidden.data("last-unforced") || "0.0.0.0"));
+        }
+    }
 
     function resetForm() {
         $(".form-group[id]").css("display", "none");
@@ -131,13 +178,32 @@
         for (var i = 0; i < arr[o].length; i++) {
             $("#" + arr[o][i]).css("display", "block")
         }
+        syncServerIpValue();
     }
 
     $(function () {
+        var input = getServerIpInput();
+        if (input.length) {
+            var initialValue = input.val() || "0.0.0.0";
+            input.data("last-unforced", initialValue === "127.0.0.1" ? "0.0.0.0" : initialValue);
+            input.on("input", function () {
+                if (!$("#force_localhost").is(":checked")) {
+                    $(this).data("last-unforced", $(this).val() || "0.0.0.0");
+                }
+            });
+        }
+        var hidden = getServerIpHidden();
+        if (hidden.length) {
+            var hiddenValue = hidden.val() || "0.0.0.0";
+            hidden.data("last-unforced", hiddenValue === "127.0.0.1" ? "0.0.0.0" : hiddenValue);
+        }
         $("#type").val('{{.t.Mode}}');
         resetForm()
         $("#type").on("change", function () {
             resetForm()
+        })
+        $("#force_localhost").on("change", function () {
+            syncServerIpValue()
         })
         $("#use_client").on("change", function () {
             resetForm()

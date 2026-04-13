@@ -60,6 +60,7 @@
 		$.ajax({
 			type: 'GET',
 			url: window.nps.web_base_url + '/static/page/languages.xml',
+			cache: false,
 			dataType: 'xml',
 			success: function (xml) {
 				languages['content'] = xml2json($(xml).children())['content'];
@@ -157,7 +158,16 @@ function submitform(action, url, postdata) {
                 success: function (res) {
                     alert(langreply(res.msg));
                     if (res.status) {
-                        if (postsubmit) {document.location.reload();}else{history.back(-1);}
+                        if (postsubmit) {
+                            document.location.reload();
+                        } else {
+                            var backUrl = document.referrer;
+                            if (backUrl && backUrl !== window.location.href) {
+                                window.location.replace(backUrl);
+                            } else {
+                                history.back(-1);
+                            }
+                        }
                     }
                 }
             });

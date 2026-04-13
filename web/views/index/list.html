@@ -34,9 +34,227 @@
     </div>
 </div>
 
+<div class="modal fade" id="quickEditModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" langtag="page-edit"></h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="quickEditForm" class="form-horizontal">
+                    <input type="hidden" id="qe_id" name="id">
+                    <input type="hidden" id="qe_type" name="type">
+                    <input type="hidden" id="qe_client_id" name="client_id">
+
+                    <div class="form-group" id="qe_remark_group">
+                        <label class="col-sm-2 control-label font-bold" langtag="word-remark"></label>
+                        <div class="col-sm-10">
+                            <input id="qe_remark" class="form-control" type="text" name="remark" placeholder="" langtag="info-unrestricted">
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="qe_bind_localhost_group">
+                        <label class="col-sm-2 control-label font-bold" langtag="word-force127001"></label>
+                        <div class="col-sm-10">
+                            <div class="checkbox i-checks">
+                                <label>
+                                    <input id="qe_force_localhost" type="checkbox" value="1">
+                                    <i></i>
+                                    <span langtag="info-force127001"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{if eq true .allow_multi_ip}}
+                    <div class="form-group" id="qe_server_ip_group">
+                        <label class="col-sm-2 control-label font-bold" langtag="word-serverip"></label>
+                        <div class="col-sm-10">
+                            <input id="qe_server_ip_input" class="form-control" type="text" name="server_ip" placeholder="" langtag="info-suchasip">
+                        </div>
+                    </div>
+                    {{else}}
+                    <input id="qe_server_ip_hidden" type="hidden" name="server_ip" value="0.0.0.0">
+                    {{end}}
+
+                    <div class="form-group" id="qe_port_group">
+                        <label class="col-sm-2 control-label font-bold" langtag="word-serverport"></label>
+                        <div class="col-sm-10">
+                            <input id="qe_port" class="form-control" type="text" name="port" placeholder="" langtag="info-suchasport">
+                        </div>
+                    </div>
+
+                    {{if eq true .allow_local_proxy}}
+                    <div class="form-group" id="qe_local_proxy_group">
+                        <label class="col-sm-2 control-label font-bold" langtag="word-proxytolocal"></label>
+                        <div class="col-sm-10">
+                            <select id="qe_local_proxy" class="form-control" name="local_proxy">
+                                <option value="0" langtag="word-no"></option>
+                                <option value="1" langtag="word-yes"></option>
+                            </select>
+                        </div>
+                    </div>
+                    {{end}}
+
+                    <div class="form-group" id="qe_target_group">
+                        <label class="col-sm-2 control-label font-bold" langtag="word-target"></label>
+                        <div class="col-sm-10">
+                            <textarea id="qe_target" class="form-control" name="target" rows="4" placeholder="" langtag="info-suchasiplist"></textarea>
+                            <span class="help-block m-b-none" langtag="info-targettunnel"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="qe_local_path_group">
+                        <label class="col-sm-2 control-label font-bold" langtag="word-localpath"></label>
+                        <div class="col-sm-10">
+                            <input id="qe_local_path" class="form-control" type="text" name="local_path" placeholder="" langtag="info-suchaslocalpath">
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="qe_strip_pre_group">
+                        <label class="col-sm-2 control-label font-bold" langtag="word-stripprefix"></label>
+                        <div class="col-sm-10">
+                            <input id="qe_strip_pre" class="form-control" type="text" name="strip_pre" placeholder="" langtag="info-suchasstripprefix">
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="qe_password_group">
+                        <label class="col-sm-2 control-label font-bold" langtag="word-identificationkey"></label>
+                        <div class="col-sm-10">
+                            <input id="qe_password" class="form-control" type="text" name="password" placeholder="" langtag="word-identificationkey">
+                            <span class="help-block m-b-none" langtag="info-identificationkey"></span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitQuickEdit()">
+                    <i class="fa fa-fw fa-lg fa-check-circle"></i> <span langtag="word-save"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     name = '{{.name}}:'.replace(/\s*/g,"")
     $('#langtag').attr('langtag','page-list' + name.replace(/:.*/,"")).next().text(name.split(":")[1])
+
+    var quickEditFields = []
+    quickEditFields["all"] = ["qe_remark_group", "qe_port_group", "qe_target_group", "qe_password_group", "qe_local_path_group", "qe_strip_pre_group", "qe_local_proxy_group", "qe_server_ip_group", "qe_bind_localhost_group"]
+    quickEditFields["tcp"] = ["qe_remark_group", "qe_port_group", "qe_target_group", "qe_local_proxy_group", "qe_server_ip_group", "qe_bind_localhost_group"]
+    quickEditFields["udp"] = ["qe_remark_group", "qe_port_group", "qe_target_group", "qe_local_proxy_group", "qe_server_ip_group"]
+    quickEditFields["socks5"] = ["qe_remark_group", "qe_port_group", "qe_server_ip_group"]
+    quickEditFields["httpProxy"] = ["qe_remark_group", "qe_port_group", "qe_server_ip_group"]
+    quickEditFields["secret"] = ["qe_remark_group", "qe_target_group", "qe_password_group", "qe_server_ip_group"]
+    quickEditFields["p2p"] = ["qe_remark_group", "qe_target_group", "qe_password_group", "qe_server_ip_group"]
+    quickEditFields["file"] = ["qe_remark_group", "qe_port_group", "qe_local_path_group", "qe_strip_pre_group", "qe_server_ip_group"]
+
+    function getQuickServerIpInput() {
+        return $("#qe_server_ip_input");
+    }
+
+    function getQuickServerIpHidden() {
+        return $("#qe_server_ip_hidden");
+    }
+
+    function syncQuickServerIpValue() {
+        var isTcp = $("#qe_type").val() === "tcp";
+        var forceLocalhost = isTcp && $("#qe_force_localhost").is(":checked");
+        var input = getQuickServerIpInput();
+        var hidden = getQuickServerIpHidden();
+
+        if (input.length) {
+            if (forceLocalhost) {
+                input.val("127.0.0.1");
+                input.prop("readonly", true);
+            } else {
+                input.prop("readonly", false);
+                if (!input.val() || input.val() === "127.0.0.1") {
+                    input.val(input.data("last-unforced") || "0.0.0.0");
+                }
+                input.data("last-unforced", input.val() || "0.0.0.0");
+            }
+            return;
+        }
+
+        if (hidden.length) {
+            hidden.val(forceLocalhost ? "127.0.0.1" : (hidden.data("last-unforced") || "0.0.0.0"));
+        }
+    }
+
+    function resetQuickEditForm(mode) {
+        $("#quickEditForm .form-group[id]").hide();
+        var fields = quickEditFields[mode] || quickEditFields["all"];
+        for (var i = 0; i < fields.length; i++) {
+            $("#" + fields[i]).show();
+        }
+        syncQuickServerIpValue();
+    }
+
+    function openQuickEdit(row) {
+        $("#qe_id").val(row.Id);
+        $("#qe_type").val(row.Mode);
+        $("#qe_client_id").val(row.Client.Id);
+        $("#qe_remark").val(row.Remark || "");
+        $("#qe_port").val(row.Port || "");
+        $("#qe_target").val((row.Target && row.Target.TargetStr) || "");
+        $("#qe_password").val(row.Password || "");
+        $("#qe_local_path").val(row.LocalPath || "");
+        $("#qe_strip_pre").val(row.StripPre || "");
+        $("#qe_local_proxy").val(row.Target && row.Target.LocalProxy ? "1" : "0");
+
+        var serverIp = row.ServerIp || "0.0.0.0";
+        var input = getQuickServerIpInput();
+        var hidden = getQuickServerIpHidden();
+        if (input.length) {
+            input.data("last-unforced", serverIp === "127.0.0.1" ? "0.0.0.0" : serverIp);
+            input.val(serverIp);
+        }
+        if (hidden.length) {
+            hidden.data("last-unforced", serverIp === "127.0.0.1" ? "0.0.0.0" : serverIp);
+            hidden.val(serverIp);
+        }
+        $("#qe_force_localhost").prop("checked", row.Mode === "tcp" && serverIp === "127.0.0.1");
+
+        resetQuickEditForm(row.Mode);
+        $("#quickEditModal").modal("show");
+        $('body').setLang('#quickEditModal');
+    }
+
+    function openQuickEditById(id) {
+        $.ajax({
+            type: "POST",
+            url: "{{.web_base_url}}/index/getonetunnel",
+            data: {id: id},
+            success: function (res) {
+                if (res.code && res.data) {
+                    openQuickEdit(res.data);
+                } else {
+                    alert("Load failed");
+                }
+            }
+        });
+    }
+
+    function submitQuickEdit() {
+        $.ajax({
+            type: "POST",
+            url: "{{.web_base_url}}/index/edit",
+            data: $("#quickEditForm").serializeArray(),
+            success: function (res) {
+                alert(langreply(res.msg));
+                if (res.status) {
+                    $("#quickEditModal").modal("hide");
+                    $("#table").bootstrapTable("refresh");
+                }
+            }
+        });
+    }
 
     /*bootstrap table*/
     $('#table').bootstrapTable({
@@ -129,6 +347,15 @@
                 visible: true//false表示不显示
             },
             {
+                field: 'ServerIp',
+                title: '<span langtag="word-bindip"></span>',
+                halign: 'center',
+                visible: true,
+                formatter: function (value, row, index) {
+                    return value || '0.0.0.0'
+                }
+            },
+            {
                 field: 'Target',//域值
                 title: '<span langtag="word-target"></span>',//标题
                 halign: 'center',
@@ -202,11 +429,38 @@
                     }
                     btn_group += "<a onclick=\"submitform('delete', '{{.web_base_url}}/index/del', {'id':" + row.Id
                     btn_group += '})" class="btn btn-outline btn-danger"><i class="fa fa-trash"></i></a>'
+                    btn_group += "<a href=\"javascript:void(0)\" onclick=\"openQuickEditById(" + row.Id + ")\" class=\"btn btn-outline btn-info\"><i class=\"fa fa-edit\"></i></a>"
                     btn_group += '<a  href="{{.web_base_url}}/index/edit?id=' + row.Id
-                    btn_group += '" class="btn btn-outline btn-success"><i class="fa fa-edit"></i></a></div>'
+                    btn_group += '" class="btn btn-outline btn-success"><i class="fa fa-external-link-alt"></i></a></div>'
                     return btn_group
                 }
             }
         ]
+    });
+
+    $(function () {
+        var input = getQuickServerIpInput();
+        if (input.length) {
+            input.on("input", function () {
+                if (!$("#qe_force_localhost").is(":checked")) {
+                    $(this).data("last-unforced", $(this).val() || "0.0.0.0");
+                }
+            });
+        }
+        $("#qe_force_localhost").on("change", function () {
+            syncQuickServerIpValue();
+        });
+        $("#quickEditModal").on("hidden.bs.modal", function () {
+            $("#quickEditForm")[0].reset();
+            var hidden = getQuickServerIpHidden();
+            if (hidden.length) {
+                hidden.val("0.0.0.0");
+            }
+            var visibleInput = getQuickServerIpInput();
+            if (visibleInput.length) {
+                visibleInput.val("");
+                visibleInput.prop("readonly", false);
+            }
+        });
     });
 </script>
