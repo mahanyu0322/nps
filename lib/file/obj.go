@@ -125,23 +125,25 @@ func (s *Client) HasHost(h *Host) bool {
 }
 
 type Tunnel struct {
-	Id           int
-	Port         int
-	ServerIp     string
-	Mode         string
-	Status       bool
-	RunStatus    bool
-	Client       *Client
-	Ports        string
-	Flow         *Flow
-	Password     string
-	Remark       string
-	TargetAddr   string
-	NoStore      bool
-	LocalPath    string
-	StripPre     string
-	Target       *Target
-	MultiAccount *MultiAccount
+	Id            int
+	Port          int
+	ServerIp      string
+	ProxyDomain   string
+	ProxySiteName string
+	Mode          string
+	Status        bool
+	RunStatus     bool
+	Client        *Client
+	Ports         string
+	Flow          *Flow
+	Password      string
+	Remark        string
+	TargetAddr    string
+	NoStore       bool
+	LocalPath     string
+	StripPre      string
+	Target        *Target
+	MultiAccount  *MultiAccount
 	Health
 	sync.RWMutex
 }

@@ -68,6 +68,13 @@
                             </div>
                         </div>
                     </div>
+                    <div class="form-group" id="qe_proxy_domain_group">
+                        <label class="col-sm-2 control-label font-bold" langtag="word-proxydomain"></label>
+                        <div class="col-sm-10">
+                            <input id="qe_proxy_domain" class="form-control" type="text" name="proxy_domain" placeholder="" langtag="info-proxydomain">
+                            <span class="help-block m-b-none" langtag="info-btproxyhint"></span>
+                        </div>
+                    </div>
 
                     {{if eq true .allow_multi_ip}}
                     <div class="form-group" id="qe_server_ip_group">
@@ -145,8 +152,8 @@
     $('#langtag').attr('langtag','page-list' + name.replace(/:.*/,"")).next().text(name.split(":")[1])
 
     var quickEditFields = []
-    quickEditFields["all"] = ["qe_remark_group", "qe_port_group", "qe_target_group", "qe_password_group", "qe_local_path_group", "qe_strip_pre_group", "qe_local_proxy_group", "qe_server_ip_group", "qe_bind_localhost_group"]
-    quickEditFields["tcp"] = ["qe_remark_group", "qe_port_group", "qe_target_group", "qe_local_proxy_group", "qe_server_ip_group", "qe_bind_localhost_group"]
+    quickEditFields["all"] = ["qe_remark_group", "qe_port_group", "qe_target_group", "qe_password_group", "qe_local_path_group", "qe_strip_pre_group", "qe_local_proxy_group", "qe_server_ip_group", "qe_bind_localhost_group", "qe_proxy_domain_group"]
+    quickEditFields["tcp"] = ["qe_remark_group", "qe_port_group", "qe_target_group", "qe_local_proxy_group", "qe_server_ip_group", "qe_bind_localhost_group", "qe_proxy_domain_group"]
     quickEditFields["udp"] = ["qe_remark_group", "qe_port_group", "qe_target_group", "qe_local_proxy_group", "qe_server_ip_group"]
     quickEditFields["socks5"] = ["qe_remark_group", "qe_port_group", "qe_server_ip_group"]
     quickEditFields["httpProxy"] = ["qe_remark_group", "qe_port_group", "qe_server_ip_group"]
@@ -202,6 +209,7 @@
         $("#qe_client_id").val(row.Client.Id);
         $("#qe_remark").val(row.Remark || "");
         $("#qe_port").val(row.Port || "");
+        $("#qe_proxy_domain").val(row.ProxyDomain || "");
         $("#qe_target").val((row.Target && row.Target.TargetStr) || "");
         $("#qe_password").val(row.Password || "");
         $("#qe_local_path").val(row.LocalPath || "");
@@ -253,6 +261,126 @@
                     $("#table").bootstrapTable("refresh");
                 }
             }
+        });
+    }
+
+    function escapeHtml(value) {
+        return $('<div/>').text(value == null ? '' : value).html();
+    }
+
+    function buildTunnelPayload(row) {
+        return {
+            id: row.Id,
+            type: row.Mode,
+            client_id: row.Client.Id,
+            port: row.Port || 0,
+            server_ip: row.ServerIp || "0.0.0.0",
+            proxy_domain: row.ProxyDomain || "",
+            target: (row.Target && row.Target.TargetStr) || "",
+            password: row.Password || "",
+            local_path: row.LocalPath || "",
+            strip_pre: row.StripPre || "",
+            remark: row.Remark || "",
+            local_proxy: row.Target && row.Target.LocalProxy ? "1" : "0"
+        };
+    }
+
+    function refreshTunnelTable() {
+        $("#table").bootstrapTable("refresh");
+    }
+
+    function withLatestTunnel(id, callback) {
+        $.ajax({
+            type: "POST",
+            url: "{{.web_base_url}}/index/getonetunnel",
+            data: {id: id},
+            success: function (res) {
+                if (res.code && res.data) {
+                    callback(res.data);
+                } else {
+                    alert("Load failed");
+                    refreshTunnelTable();
+                }
+            },
+            error: function () {
+                alert("Load failed");
+                refreshTunnelTable();
+            }
+        });
+    }
+
+    function saveTunnelPayload(payload) {
+        $.ajax({
+            type: "POST",
+            url: "{{.web_base_url}}/index/edit",
+            data: payload,
+            success: function (res) {
+                alert(langreply(res.msg));
+                refreshTunnelTable();
+            },
+            error: function () {
+                alert("Save failed");
+                refreshTunnelTable();
+            }
+        });
+    }
+
+    function openInlineEditor(field, id) {
+        withLatestTunnel(id, function (row) {
+            var payload = buildTunnelPayload(row);
+            var currentValue = "";
+            var label = "";
+
+            if (field === "port") {
+                currentValue = String(payload.port || "");
+                label = "Port";
+            } else if (field === "server_ip") {
+                currentValue = payload.server_ip || "0.0.0.0";
+                label = "Bind IP";
+            } else if (field === "target") {
+                currentValue = payload.target || "";
+                label = "Target";
+            } else if (field === "remark") {
+                currentValue = payload.remark || "";
+                label = "Remark";
+            } else if (field === "proxy_domain") {
+                currentValue = payload.proxy_domain || "";
+                label = "Proxy Domain";
+            } else {
+                return;
+            }
+
+            var nextValue = window.prompt(label, currentValue);
+            if (nextValue === null) {
+                return;
+            }
+            nextValue = $.trim(nextValue);
+
+            if (field === "port") {
+                if (!/^\d+$/.test(nextValue) || parseInt(nextValue, 10) <= 0) {
+                    alert("Port must be a positive integer");
+                    return;
+                }
+                payload.port = parseInt(nextValue, 10);
+            } else if (field === "server_ip") {
+                payload.server_ip = nextValue || "0.0.0.0";
+            } else if (field === "target") {
+                payload.target = nextValue;
+            } else if (field === "remark") {
+                payload.remark = nextValue;
+            } else if (field === "proxy_domain") {
+                payload.proxy_domain = nextValue;
+            }
+
+            saveTunnelPayload(payload);
+        });
+    }
+
+    function toggleForceLocalhost(id, checked) {
+        withLatestTunnel(id, function (row) {
+            var payload = buildTunnelPayload(row);
+            payload.server_ip = checked ? "127.0.0.1" : "0.0.0.0";
+            saveTunnelPayload(payload);
         });
     }
 
@@ -329,7 +457,11 @@
                 field: 'Remark',//域值
                 title: '<span langtag="word-remark"></span>',//标题
                 halign: 'center',
-                visible: true//false表示不显示
+                visible: true,//false表示不显示
+                formatter: function (value, row, index) {
+                    var display = escapeHtml(value || '');
+                    return display + ' <a href="javascript:void(0)" onclick="openInlineEditor(\'remark\',' + row.Id + ')" class="btn btn-xs btn-outline btn-info"><i class="fa fa-edit"></i></a>'
+                }
             },
             {
                 field: 'Mode',//域值
@@ -344,7 +476,13 @@
                 field: 'Port',//域值
                 title: '<span langtag="word-port"></span>',//标题
                 halign: 'center',
-                visible: true//false表示不显示
+                visible: true,//false表示不显示
+                formatter: function (value, row, index) {
+                    if (row.Mode === "secret" || row.Mode === "p2p") {
+                        return value || ''
+                    }
+                    return escapeHtml(value || '') + ' <a href="javascript:void(0)" onclick="openInlineEditor(\'port\',' + row.Id + ')" class="btn btn-xs btn-outline btn-info"><i class="fa fa-edit"></i></a>'
+                }
             },
             {
                 field: 'ServerIp',
@@ -352,7 +490,33 @@
                 halign: 'center',
                 visible: true,
                 formatter: function (value, row, index) {
-                    return value || '0.0.0.0'
+                    return escapeHtml(value || '0.0.0.0') + ' <a href="javascript:void(0)" onclick="openInlineEditor(\'server_ip\',' + row.Id + ')" class="btn btn-xs btn-outline btn-info"><i class="fa fa-edit"></i></a>'
+                }
+            },
+            {
+                field: 'ForceLocalhost',
+                title: '<span langtag="word-force127001"></span>',
+                align: 'center',
+                halign: 'center',
+                visible: true,
+                formatter: function (value, row, index) {
+                    if (row.Mode !== "tcp") {
+                        return '-'
+                    }
+                    var checked = (row.ServerIp || '0.0.0.0') === '127.0.0.1' ? 'checked' : '';
+                    return '<input type="checkbox" ' + checked + ' onchange="toggleForceLocalhost(' + row.Id + ', this.checked)">'
+                }
+            },
+            {
+                field: 'ProxyDomain',
+                title: '<span langtag="word-proxydomain"></span>',
+                halign: 'center',
+                visible: true,
+                formatter: function (value, row, index) {
+                    if (row.Mode !== "tcp") {
+                        return '-'
+                    }
+                    return escapeHtml(value || '') + ' <a href="javascript:void(0)" onclick="openInlineEditor(\'proxy_domain\',' + row.Id + ')" class="btn btn-xs btn-outline btn-info"><i class="fa fa-edit"></i></a>'
                 }
             },
             {
@@ -361,7 +525,7 @@
                 halign: 'center',
                 visible: true,//false表示不显示
                 formatter: function (value, row, index) {
-                    return row.Target.TargetStr
+                    return escapeHtml(row.Target.TargetStr) + ' <a href="javascript:void(0)" onclick="openInlineEditor(\'target\',' + row.Id + ')" class="btn btn-xs btn-outline btn-info"><i class="fa fa-edit"></i></a>'
                 }
             },
             {
@@ -461,6 +625,7 @@
                 visibleInput.val("");
                 visibleInput.prop("readonly", false);
             }
+            $("#qe_proxy_domain").val("");
         });
     });
 </script>

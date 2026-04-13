@@ -1,3 +1,43 @@
-nohup: ignoring input
-2026/02/12 11:59:01.098 [1;31m[E][0m [nps.go:132]  Valid actions: ["start" "stop" "restart" "install" "uninstall"]
-Failed to start nps内网穿透代理服务器: exit status 5
+2026/04/14 02:06:24.633 [1;34m[I][0m [nps.go:202]  the version of server is 0.26.10 ,allow client core version to be 0.26.0
+2026/04/14 02:06:25.218 [1;34m[I][0m [connection.go:36]  server start, the bridge type is tcp, the bridge port is 8024
+2026/04/14 02:06:25.262 [1;34m[I][0m [server.go:200]  tunnel task  start mode：socks5 port 1145
+2026/04/14 02:06:25.262 [1;34m[I][0m [server.go:200]  tunnel task  start mode：tcp port 7706
+2026/04/14 02:06:25.262 [1;34m[I][0m [server.go:200]  tunnel task Openclaw 控制台 start mode：tcp port 7489
+2026/04/14 02:06:25.262 [1;34m[I][0m [server.go:200]  tunnel task  start mode：socks5 port 57326
+2026/04/14 02:06:25.262 [1;34m[I][0m [server.go:200]  tunnel task 闲鱼后台管理 start mode：tcp port 7427
+2026/04/14 02:06:25.262 [1;34m[I][0m [server.go:200]  tunnel task  start mode：socks5 port 1552
+2026/04/14 02:06:25.262 [1;34m[I][0m [server.go:200]  tunnel task 晶核后台 start mode：tcp port 7522
+2026/04/14 02:06:25.262 [1;34m[I][0m [server.go:200]  tunnel task  start mode：socks5 port 1515
+2026/04/14 02:06:25.262 [1;34m[I][0m [server.go:200]  tunnel task  start mode：tcp port 7533
+2026/04/14 02:06:25.262 [1;34m[I][0m [server.go:200]  tunnel task  start mode：tcp port 7001
+2026/04/14 02:06:25.262 [1;34m[I][0m [server.go:200]  tunnel task Hermes管理后台 start mode：tcp port 7633
+2026/04/14 02:06:25.263 [1;34m[I][0m [server.go:200]  tunnel task  start mode：tcp port 7789
+2026/04/14 02:06:25.263 [1;34m[I][0m [server.go:200]  tunnel task  start mode：httpHostServer port 0
+2026/04/14 02:06:25.263 [1;34m[I][0m [connection.go:71]  web management start, access port is 8080
+2026/04/14 02:06:25.263 [1;34m[I][0m [connection.go:62]  start https listener, port is 8443
+2026/04/14 02:06:25.265 [1;34m[I][0m [connection.go:53]  start http listener, port is 8000
+2026/04/14 02:06:26.638 [1;44m[D][0m [router.go:925]  |      127.0.0.1|[97;42m 200 [0m|   1.282715ms|   match|[97;45m HEAD    [0m /login/index   r:/login/index/*
+2026/04/14 02:06:29.510 [1;34m[I][0m [bridge.go:249]  客户端连接，IP地址: 111.0.51.53，连接类型: main
+2026/04/14 02:06:29.511 [1;34m[I][0m [bridge.go:252]  检查IP 111.0.51.53 是否在黑名单中...
+2026/04/14 02:06:29.511 [1;34m[I][0m [bridge.go:259]  IP 111.0.51.53 不在黑名单中，允许连接
+2026/04/14 02:06:29.511 [1;34m[I][0m [bridge.go:283]  clientId 4 connection succeeded, address:111.0.51.53:13119 
+2026/04/14 02:06:29.523 [1;34m[I][0m [bridge.go:249]  客户端连接，IP地址: 111.0.51.53，连接类型: conf
+2026/04/14 02:06:29.523 [1;34m[I][0m [bridge.go:252]  检查IP 111.0.51.53 是否在黑名单中...
+2026/04/14 02:06:29.523 [1;34m[I][0m [bridge.go:259]  IP 111.0.51.53 不在黑名单中，允许连接
+2026/04/14 02:06:29.600 [1;34m[I][0m [server.go:200]  tunnel task tcp start mode：tcp port 10000
+2026/04/14 02:06:29.614 [1;34m[I][0m [bridge.go:249]  客户端连接，IP地址: 111.0.51.53，连接类型: chan
+2026/04/14 02:06:29.614 [1;34m[I][0m [bridge.go:252]  检查IP 111.0.51.53 是否在黑名单中...
+2026/04/14 02:06:29.614 [1;34m[I][0m [bridge.go:259]  IP 111.0.51.53 不在黑名单中，允许连接
+2026/04/14 02:06:29.648 [1;34m[I][0m [server.go:200]  tunnel task socks5 start mode：socks5 port 19009
+2026/04/14 02:06:29.693 [1;34m[I][0m [server.go:200]  tunnel task file start mode：file port 19008
+2026/04/14 02:06:29.737 [1;34m[I][0m [server.go:200]  tunnel task http start mode：httpProxy port 19004
+2026/04/14 02:06:29.836 [1;34m[I][0m [bridge.go:249]  客户端连接，IP地址: 111.0.51.53，连接类型: file
+2026/04/14 02:06:29.836 [1;34m[I][0m [bridge.go:252]  检查IP 111.0.51.53 是否在黑名单中...
+2026/04/14 02:06:29.836 [1;34m[I][0m [bridge.go:259]  IP 111.0.51.53 不在黑名单中，允许连接
+2026/04/14 02:06:29.867 [1;34m[I][0m [bridge.go:249]  客户端连接，IP地址: 111.0.51.53，连接类型: main
+2026/04/14 02:06:29.867 [1;34m[I][0m [bridge.go:252]  检查IP 111.0.51.53 是否在黑名单中...
+2026/04/14 02:06:29.867 [1;34m[I][0m [bridge.go:259]  IP 111.0.51.53 不在黑名单中，允许连接
+2026/04/14 02:06:29.867 [1;34m[I][0m [bridge.go:283]  clientId 6 connection succeeded, address:111.0.51.53:13126 
+2026/04/14 02:06:29.994 [1;34m[I][0m [bridge.go:249]  客户端连接，IP地址: 111.0.51.53，连接类型: chan
+2026/04/14 02:06:29.994 [1;34m[I][0m [bridge.go:252]  检查IP 111.0.51.53 是否在黑名单中...
+2026/04/14 02:06:29.994 [1;34m[I][0m [bridge.go:259]  IP 111.0.51.53 不在黑名单中，允许连接

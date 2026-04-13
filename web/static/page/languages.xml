@@ -253,6 +253,10 @@
 		<zh-CN>强制本机访问</zh-CN>
 		<en-US>Force localhost</en-US>
 	</lang>
+	<lang id="word-proxydomain">
+		<zh-CN>绑定域名</zh-CN>
+		<en-US>Proxy domain</en-US>
+	</lang>
 	<lang id="word-go">
 		<zh-CN>进入</zh-CN>
 		<en-US>go</en-US>
@@ -589,6 +593,14 @@
 	<lang id="info-force127001">
 		<zh-CN>勾选后，此 TCP 隧道只监听 127.0.0.1，必须通过 Nginx 等反向代理访问；不勾选则保留公网监听。</zh-CN>
 		<en-US>When enabled, this TCP tunnel only listens on 127.0.0.1 and must be accessed through a reverse proxy such as Nginx. When disabled, it keeps a public listener.</en-US>
+	</lang>
+	<lang id="info-proxydomain">
+		<zh-CN>例如：demo.example.com</zh-CN>
+		<en-US>Example: demo.example.com</en-US>
+	</lang>
+	<lang id="info-btproxyhint">
+		<zh-CN>仅 TCP 且强制 127.0.0.1 时生效。保存后会自动在宝塔网站里创建或更新反向代理到 127.0.0.1:当前端口。</zh-CN>
+		<en-US>Only applies to TCP tunnels forced to 127.0.0.1. Saving will create or update a BaoTa reverse proxy to 127.0.0.1:current-port.</en-US>
 	</lang>
 	<lang id="info-caseudp">
 		<zh-CN>通过公网服务器1.1.1.1的53端口，访问内网机器10.1.50.101的53端口，使用DNS服务。</zh-CN>

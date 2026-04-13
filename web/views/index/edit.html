@@ -55,6 +55,13 @@
                             </div>
                         </div>
                     </div>
+                    <div class="form-group" id="proxy_domain_group">
+                        <label class="col-sm-2 control-label font-bold" langtag="word-proxydomain"></label>
+                        <div class="col-sm-10">
+                            <input value="{{.t.ProxyDomain}}" class="form-control" id="proxy_domain" type="text" name="proxy_domain" placeholder="" langtag="info-proxydomain">
+                            <span class="help-block m-b-none" langtag="info-btproxyhint"></span>
+                        </div>
+                    </div>
                 {{if eq true .allow_multi_ip}}
                     <div class="form-group" id="server_ip_group">
                         <label class="col-sm-2 control-label font-bold" langtag="word-serverip"></label>
@@ -128,8 +135,8 @@
 </div>
 <script>
     var arr = []
-    arr["all"] = ["port", "target", "password", "local_path", "strip_pre", "local_proxy", "server_ip_group", "bind_localhost"]
-    arr["tcp"] = ["client_id", "port", "target", "local_proxy", "server_ip_group", "bind_localhost"]
+    arr["all"] = ["port", "target", "password", "local_path", "strip_pre", "local_proxy", "server_ip_group", "bind_localhost", "proxy_domain_group"]
+    arr["tcp"] = ["client_id", "port", "target", "local_proxy", "server_ip_group", "bind_localhost", "proxy_domain_group"]
     arr["udp"] = ["client_id", "port", "target", "local_proxy", "server_ip_group"]
     arr["socks5"] = ["client_id", "port", "server_ip_group"]
     arr["httpProxy"] = ["client_id", "port", "server_ip_group"]

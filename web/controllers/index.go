@@ -93,17 +93,18 @@ func (s *IndexController) Add() {
 		s.display()
 	} else {
 		t := &file.Tunnel{
-			Port:      s.GetIntNoErr("port"),
-			ServerIp:  s.getEscapeString("server_ip"),
-			Mode:      s.getEscapeString("type"),
-			Target:    &file.Target{TargetStr: s.getEscapeString("target"), LocalProxy: s.GetBoolNoErr("local_proxy")},
-			Id:        int(file.GetDb().JsonDb.GetTaskId()),
-			Status:    true,
-			Remark:    s.getEscapeString("remark"),
-			Password:  s.getEscapeString("password"),
-			LocalPath: s.getEscapeString("local_path"),
-			StripPre:  s.getEscapeString("strip_pre"),
-			Flow:      &file.Flow{},
+			Port:        s.GetIntNoErr("port"),
+			ServerIp:    s.getEscapeString("server_ip"),
+			ProxyDomain: s.getEscapeString("proxy_domain"),
+			Mode:        s.getEscapeString("type"),
+			Target:      &file.Target{TargetStr: s.getEscapeString("target"), LocalProxy: s.GetBoolNoErr("local_proxy")},
+			Id:          int(file.GetDb().JsonDb.GetTaskId()),
+			Status:      true,
+			Remark:      s.getEscapeString("remark"),
+			Password:    s.getEscapeString("password"),
+			LocalPath:   s.getEscapeString("local_path"),
+			StripPre:    s.getEscapeString("strip_pre"),
+			Flow:        &file.Flow{},
 		}
 		if !tool.TestServerPort(t.Port, t.Mode) {
 			s.AjaxErr("The port cannot be opened because it may has been occupied or is no longer allowed.")
@@ -120,7 +121,12 @@ func (s *IndexController) Add() {
 		}
 		if err := server.AddTask(t); err != nil {
 			s.AjaxErr(err.Error())
+		}
+		if err := syncTunnelAutoProxy(t, nil); err != nil {
+			_ = server.DelTask(t.Id)
+			s.AjaxErr(err.Error())
 		} else {
+			file.GetDb().UpdateTask(t)
 			s.AjaxOk("add success")
 		}
 	}
@@ -151,6 +157,7 @@ func (s *IndexController) Edit() {
 		if t, err := file.GetDb().GetTask(id); err != nil {
 			s.error()
 		} else {
+			previous := captureTunnelAutoProxyState(t)
 			if client, err := file.GetDb().GetClient(s.GetIntNoErr("client_id")); err != nil {
 				s.AjaxErr("modified error,the client is not exist")
 				return
@@ -165,6 +172,7 @@ func (s *IndexController) Edit() {
 				t.Port = s.GetIntNoErr("port")
 			}
 			t.ServerIp = s.getEscapeString("server_ip")
+			t.ProxyDomain = s.getEscapeString("proxy_domain")
 			t.Mode = s.getEscapeString("type")
 			t.Target = &file.Target{TargetStr: s.getEscapeString("target")}
 			t.Password = s.getEscapeString("password")
@@ -173,6 +181,10 @@ func (s *IndexController) Edit() {
 			t.StripPre = s.getEscapeString("strip_pre")
 			t.Remark = s.getEscapeString("remark")
 			t.Target.LocalProxy = s.GetBoolNoErr("local_proxy")
+			if err := syncTunnelAutoProxy(t, previous); err != nil {
+				s.AjaxErr(err.Error())
+				return
+			}
 			file.GetDb().UpdateTask(t)
 			server.StopServer(t.Id)
 			server.StartTask(t.Id)
@@ -191,6 +203,12 @@ func (s *IndexController) Stop() {
 
 func (s *IndexController) Del() {
 	id := s.GetIntNoErr("id")
+	if t, err := file.GetDb().GetTask(id); err == nil {
+		if err := deleteManagedTunnelProxy(t.ProxySiteName); err != nil {
+			s.AjaxErr(err.Error())
+			return
+		}
+	}
 	if err := server.DelTask(id); err != nil {
 		s.AjaxErr("delete error")
 	}
